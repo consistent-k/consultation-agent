@@ -47,7 +47,7 @@ jobs:
               with:
                   context: .
                   file: ./apps/backend/Dockerfile
-                  target: backend
+                  target: runner
                   platforms: linux/amd64,linux/arm64
                   push: true
                   tags: ${{ steps.meta-backend.outputs.tags }}
@@ -97,7 +97,7 @@ jobs:
               with:
                   context: .
                   file: ./apps/frontend/Dockerfile
-                  target: frontend
+                  target: runner
                   platforms: linux/amd64,linux/arm64
                   push: true
                   tags: ${{ steps.meta-frontend.outputs.tags }}
