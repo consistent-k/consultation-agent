@@ -1,16 +1,5 @@
 import { createStyles, keyframes } from 'antd-style';
 
-const fadeInUp = keyframes`
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-`;
-
 const gentlePulse = keyframes`
     0%, 100% {
         transform: scale(1);
@@ -30,15 +19,35 @@ const useStyles = createStyles(({ css, token }) => {
     return css({
         '&.chat-window': {
             flex: 1,
-            overflowY: 'auto',
-            padding: '12px 4px',
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
+            overflow: 'hidden',
+
+            '.chat-window-list': {
+                flex: 1,
+                overflowY: 'auto',
+                minHeight: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '16px'
+            },
+
+            '.chat-window-loading': {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                padding: '12px 0',
+                minHeight: 32
+            },
+
+            '.chat-window-loadingText': {
+                fontSize: 13
+            },
 
             '.chat-window-errorAlert': {
                 marginBottom: 16
-            },
-
-            '.chat-window-bubbleEnter': {
-                animation: `${fadeInUp} 250ms ease-out`
             },
 
             // Welcome screen
@@ -132,23 +141,6 @@ const useStyles = createStyles(({ css, token }) => {
                 marginTop: 2
             },
 
-            // Chat bubbles
-            '.chat-window-bubbleRow': {
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                gap: 10,
-                marginBottom: 20,
-                paddingRight: 80
-            },
-
-            '.chat-window-bubbleUser': {
-                flexDirection: 'row-reverse',
-                alignItems: 'flex-end',
-                paddingRight: 0,
-                paddingLeft: 80
-            },
-
             '.chat-window-userAvatar': {
                 background: 'linear-gradient(135deg, #0891b2, #06b6d4)',
                 boxShadow: '0 2px 8px rgba(8, 145, 178, 0.2)',
@@ -161,18 +153,6 @@ const useStyles = createStyles(({ css, token }) => {
                 color: '#0891b2',
                 boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
                 flexShrink: 0
-            },
-
-            '.chat-window-assistantBubble': {
-                padding: '12px 18px',
-                borderRadius: '18px 18px 18px 4px',
-                background: '#ffffff',
-                border: '1px solid #e2e8f0',
-                boxShadow: '0 1px 4px rgba(0, 0, 0, 0.03)',
-                lineHeight: 1.65,
-                fontSize: 15,
-                color: '#134e4a',
-                wordBreak: 'break-word'
             },
 
             '.chat-window-bubbleContent': {
@@ -198,6 +178,17 @@ const useStyles = createStyles(({ css, token }) => {
 
             '.chat-window-loadingSpin': {
                 color: '#94a3b8'
+            },
+
+            // ThoughtChain styles
+            '.chat-window-thoughtChain': {
+                width: '100%'
+            },
+
+            '.chat-window-stepContent': {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8
             }
         }
     });

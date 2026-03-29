@@ -1,9 +1,10 @@
 import { UserOutlined, RobotOutlined, BulbOutlined, MedicineBoxOutlined } from '@ant-design/icons';
-import { Bubble, Think } from '@ant-design/x';
+import { Bubble, ThoughtChain } from '@ant-design/x';
 import XMarkdown from '@ant-design/x-markdown';
-import type { UIMessage } from 'ai';
+import type { UIMessage, UIMessagePart, UIDataTypes, UITools } from 'ai';
 import { Alert, Avatar, Spin, Typography } from 'antd';
-import { useRef, useEffect, useMemo, memo } from 'react';
+import { useRef, useMemo, memo } from 'react';
+import useScrollToBottom from '../../hooks/useScrollToBottom';
 import { ToolCallConfirmation } from '../ToolCallConfirmation';
 import useStyles from './styles';
 
@@ -19,11 +20,144 @@ const TOOL_LABELS: Record<string, string> = {
     generateReport: '报告'
 };
 
+const STEP_TITLES: Record<string, string> = {
+    collectAge: '收集年龄',
+    collectGender: '收集性别',
+    collectSymptoms: '收集症状',
+    collectDuration: '收集持续时间',
+    collectMedicalHistory: '收集既往病史',
+    collectAllergies: '收集过敏史',
+    generateReport: '生成报告'
+};
+
+interface ToolPart {
+    type: string;
+    toolCallId: string;
+    state: string;
+    input?: Record<string, unknown>;
+    output?: unknown;
+}
+
+interface Step {
+    id: string;
+    reasoning: string;
+    toolCalls: ToolPart[];
+    text: string;
+}
+
+interface StepContent {
+    reasoning?: string;
+    toolCalls: ToolPart[];
+    text?: string;
+}
+
 interface ChatWindowProps {
     messages: UIMessage[];
     status?: 'submitted' | 'streaming' | 'ready' | 'error';
     error?: Error;
     onConfirmToolCall?: (toolCallId: string, toolName: string, output: unknown) => void;
+}
+
+function groupPartsBySteps(parts: UIMessage['parts']): Step[] {
+    const steps: Step[] = [];
+    let currentStep: Step = { id: '', reasoning: '', toolCalls: [], text: '' };
+
+    for (const part of parts) {
+        if (part.type === 'step-start') {
+            if (currentStep.id || currentStep.reasoning || currentStep.toolCalls.length || currentStep.text) {
+                steps.push(currentStep);
+            }
+            currentStep = { id: crypto.randomUUID(), reasoning: '', toolCalls: [], text: '' };
+        } else if (part.type === 'reasoning') {
+            const reasoningPart = part as { type: 'reasoning'; text: string };
+            currentStep.reasoning += reasoningPart.text;
+        } else if (part.type.startsWith('tool-')) {
+            currentStep.toolCalls.push(part as unknown as ToolPart);
+        } else if (part.type === 'text') {
+            const textPart = part as { type: 'text'; text: string };
+            currentStep.text += textPart.text;
+        }
+    }
+
+    if (currentStep.id || currentStep.reasoning || currentStep.toolCalls.length || currentStep.text) {
+        steps.push(currentStep);
+    }
+
+    return steps;
+}
+
+function getStepStatus(step: Step): 'loading' | 'success' | 'error' | undefined {
+    if (step.toolCalls.length === 0) {
+        return step.text ? 'success' : undefined;
+    }
+
+    const hasError = step.toolCalls.some((tc) => tc.state === 'output-error');
+    const allDone = step.toolCalls.every((tc) => tc.state === 'output-available' || tc.state === 'output-error');
+
+    if (hasError) return 'error';
+    if (allDone) return 'success';
+    return 'loading';
+}
+
+function getStepTitle(step: Step, index: number): string {
+    if (step.toolCalls.length > 0) {
+        const toolName = step.toolCalls[0].type.replace('tool-', '');
+        return STEP_TITLES[toolName] || `步骤 ${index + 1}`;
+    }
+    return step.text ? '回复' : `步骤 ${index + 1}`;
+}
+
+function renderToolOutput(part: ToolPart, onConfirm?: ChatWindowProps['onConfirmToolCall']) {
+    if (part.state === 'input-available') {
+        return <ToolCallConfirmation key={part.toolCallId} toolPart={part as unknown as UIMessagePart<UIDataTypes, UITools>} onConfirm={onConfirm || (() => {})} />;
+    }
+
+    if (part.state === 'output-available' && part.output) {
+        const toolName = part.type.replace('tool-', '');
+        const output = part.output as Record<string, unknown>;
+        let displayValue = '';
+
+        if (output.confirmed) {
+            if (toolName === 'collectAge' && output.age !== undefined) {
+                displayValue = `${output.age} 岁`;
+            } else if (toolName === 'collectGender' && output.gender) {
+                displayValue = output.gender as string;
+            } else if (toolName === 'collectSymptoms' && output.symptoms) {
+                displayValue = output.symptoms as string;
+            } else if (toolName === 'collectDuration' && output.duration) {
+                displayValue = output.duration as string;
+            } else if ((toolName === 'collectMedicalHistory' || toolName === 'collectAllergies') && Array.isArray(output.conditions || output.allergies)) {
+                const arr = (output.conditions || output.allergies) as string[];
+                displayValue = arr.length > 0 ? arr.join('、') : '无';
+            } else if (toolName === 'generateReport' && output.report) {
+                const report = output.report as Record<string, unknown>;
+                const items = [
+                    report.age ? `年龄: ${report.age} 岁` : '',
+                    report.gender ? `性别: ${report.gender}` : '',
+                    report.symptoms ? `症状: ${report.symptoms}` : '',
+                    report.duration ? `持续时间: ${report.duration}` : '',
+                    report.medicalHistory ? `既往病史: ${(report.medicalHistory as string[]).join('、') || '无'}` : '',
+                    report.allergies ? `过敏史: ${(report.allergies as string[]).join('、') || '无'}` : ''
+                ].filter(Boolean);
+                displayValue = items.join('\n');
+                if (report.summary) {
+                    displayValue += `\n摘要: ${report.summary}`;
+                }
+            }
+        }
+
+        if (!displayValue) return null;
+
+        return (
+            <div key={part.toolCallId} className={'chat-window-toolOutput'}>
+                <Text className={'chat-window-toolOutputText'}>
+                    ✓ {TOOL_LABELS[toolName] || toolName}：{displayValue}
+                </Text>
+            </div>
+        );
+    }
+
+    return null;
 }
 
 const WelcomeScreen = memo(function WelcomeScreen() {
@@ -60,122 +194,105 @@ const WelcomeScreen = memo(function WelcomeScreen() {
 export const ChatWindow = memo(function ChatWindow({ messages, status, error, onConfirmToolCall }: ChatWindowProps) {
     const { styles, cx } = useStyles();
     const listRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (listRef.current) {
-            listRef.current.scrollTop = listRef.current.scrollHeight;
-        }
-    }, [messages]);
+    const { scrollDomToBottom } = useScrollToBottom(listRef);
 
     const isLoading = useMemo(() => status === 'submitted' || status === 'streaming', [status]);
 
-    const getTextContent = (msg: UIMessage): string => {
-        return msg.parts
-            .filter((part) => part.type === 'text')
-            .map((part) => (part as { type: 'text'; text: string }).text)
-            .join('');
-    };
-
-    const getToolParts = (msg: UIMessage) => {
-        return msg.parts.filter((part) => part.type.startsWith('tool-'));
-    };
-
-    const getReasoningText = (msg: UIMessage): string => {
-        return msg.parts
-            .filter((part) => part.type === 'reasoning')
-            .map((part) => (part as { type: 'reasoning'; text: string }).text)
-            .join('');
-    };
-
     return (
-        <div ref={listRef} className={cx('chat-window', styles.toString())}>
-            {messages.length === 0 && <WelcomeScreen />}
+        <div className={cx('chat-window', styles.toString())}>
+            <div ref={listRef} className={cx('chat-window-list', styles.toString())}>
+                {messages.length === 0 && <WelcomeScreen />}
+                {messages.map((msg, msgIndex) => {
+                    const isLastMessage = msgIndex === messages.length - 1;
 
-            {error && <Alert type="error" showIcon title="请求失败" description={error.message} className={'chat-window-errorAlert'} />}
+                    if (msg.role === 'user') {
+                        const userText = msg.parts
+                            .filter((part) => part.type === 'text')
+                            .map((part) => (part as { type: 'text'; text: string }).text)
+                            .join('');
 
-            {messages.map((msg, msgIndex) => {
-                const textContent = msg.role === 'assistant' ? getTextContent(msg) : '';
-                const reasoningText = msg.role === 'assistant' ? getReasoningText(msg) : '';
-                const toolParts = msg.role === 'assistant' ? getToolParts(msg) : [];
-                const isLastMessage = msgIndex === messages.length - 1;
+                        return (
+                            <Bubble
+                                key={msg.id}
+                                style={{
+                                    maxWidth: '80%'
+                                }}
+                                content={userText}
+                                placement="end"
+                                avatar={<Avatar size={34} icon={<UserOutlined />} className={'chat-window-userAvatar'} />}
+                            />
+                        );
+                    }
 
-                if (msg.role === 'user') {
-                    const userText = msg.parts
-                        .filter((part) => part.type === 'text')
-                        .map((part) => (part as { type: 'text'; text: string }).text)
-                        .join('');
+                    const allSteps = groupPartsBySteps(msg.parts);
+
+                    if (allSteps.length === 0 && isLoading && isLastMessage) {
+                        return (
+                            <Bubble
+                                key={msg.id}
+                                style={{
+                                    maxWidth: '90%'
+                                }}
+                                content={<Spin size="small" description="正在思考中..." className={'chat-window-loadingSpin'} />}
+                                avatar={<Avatar size={34} icon={<RobotOutlined />} className={'chat-window-assistantAvatar'} />}
+                            />
+                        );
+                    }
 
                     return (
-                        <div key={msg.id} className={cx('chat-window-bubbleEnter', 'chat-window-bubbleRow', 'chat-window-bubbleUser')}>
-                            <Bubble content={userText} placement="end" avatar={<Avatar size={34} icon={<UserOutlined />} className={'chat-window-userAvatar'} />} />
-                        </div>
-                    );
-                }
-
-                return (
-                    <div key={msg.id} className={cx('chat-window-bubbleEnter', 'chat-window-bubbleRow')}>
-                        <Avatar size={34} icon={<RobotOutlined />} className={'chat-window-assistantAvatar'} />
-                        <div className={'chat-window-bubbleContent'}>
-                            {reasoningText && <Think title={'思考过程'}>{reasoningText}</Think>}
-
-                            {toolParts.map((part) => {
-                                const partData = part as { type: string; toolCallId: string; state: string; input?: Record<string, unknown>; output?: unknown };
-                                if (partData.state === 'input-available') {
-                                    return <ToolCallConfirmation key={partData.toolCallId} toolPart={part} onConfirm={onConfirmToolCall || (() => {})} />;
-                                }
-                                if (partData.state === 'output-available' && partData.output) {
-                                    const toolName = partData.type.replace('tool-', '');
-                                    const output = partData.output as Record<string, unknown>;
-                                    let displayValue: string = '';
-                                    if (output.confirmed) {
-                                        if (toolName === 'collectAge' && output.age !== undefined) {
-                                            displayValue = `${output.age} 岁`;
-                                        } else if (toolName === 'collectGender' && output.gender) {
-                                            displayValue = output.gender as string;
-                                        } else if (toolName === 'collectSymptoms' && output.symptoms) {
-                                            displayValue = output.symptoms as string;
-                                        } else if (toolName === 'collectDuration' && output.duration) {
-                                            displayValue = output.duration as string;
-                                        } else if ((toolName === 'collectMedicalHistory' || toolName === 'collectAllergies') && Array.isArray(output.conditions || output.allergies)) {
-                                            const arr = (output.conditions || output.allergies) as string[];
-                                            displayValue = arr.length > 0 ? arr.join('、') : '无';
-                                        } else if (toolName === 'generateReport' && output.report) {
-                                            const report = output.report as Record<string, unknown>;
-                                            const items = [
-                                                report.age ? `年龄: ${report.age} 岁` : '',
-                                                report.gender ? `性别: ${report.gender}` : '',
-                                                report.symptoms ? `症状: ${report.symptoms}` : '',
-                                                report.duration ? `持续时间: ${report.duration}` : '',
-                                                report.medicalHistory ? `既往病史: ${(report.medicalHistory as string[]).join('、') || '无'}` : '',
-                                                report.allergies ? `过敏史: ${(report.allergies as string[]).join('、') || '无'}` : ''
-                                            ].filter(Boolean);
-                                            displayValue = items.join('\n');
-                                            if (report.summary) {
-                                                displayValue += `\n摘要: ${report.summary}`;
-                                            }
-                                        }
-                                    }
-                                    if (!displayValue) return null;
-                                    return (
-                                        <div key={partData.toolCallId} className={'chat-window-toolOutput'}>
-                                            <Text className={'chat-window-toolOutputText'}>
-                                                ✓ {TOOL_LABELS[toolName] || toolName}：{displayValue}
-                                            </Text>
-                                        </div>
-                                    );
-                                }
-                                return null;
-                            })}
-
-                            {textContent || (isLoading && !toolParts.length && isLastMessage) ? (
-                                <div className={'chat-window-assistantBubble'}>
-                                    {textContent ? <XMarkdown content={textContent}></XMarkdown> : <Spin size="small" description="正在思考中..." className={'chat-window-loadingSpin'} />}
+                        <Bubble
+                            key={msg.id}
+                            style={{
+                                maxWidth: '90%'
+                            }}
+                            content={
+                                <div className={'chat-window-bubbleContent'}>
+                                    {allSteps.length > 0 && (
+                                        <ThoughtChain
+                                            className={'chat-window-thoughtChain'}
+                                            items={allSteps.map((step, stepIndex) => ({
+                                                key: step.id,
+                                                title: getStepTitle(step, stepIndex),
+                                                status: getStepStatus(step),
+                                                content: (
+                                                    <div className={'chat-window-stepContent'}>
+                                                        {step.reasoning && <span>{step.reasoning}</span>}
+                                                        {step.text &&
+                                                            (isLoading && isLastMessage ? (
+                                                                <span>{step.text}</span> // 流式阶段不用 markdown
+                                                            ) : (
+                                                                <XMarkdown
+                                                                    content={step.text}
+                                                                    style={{
+                                                                        background: '#fff',
+                                                                        borderRadius: 16,
+                                                                        padding: 16
+                                                                    }}
+                                                                />
+                                                            ))}
+                                                        {step.toolCalls.map((tc) => renderToolOutput(tc, onConfirmToolCall))}
+                                                    </div>
+                                                )
+                                            }))}
+                                        />
+                                    )}
                                 </div>
-                            ) : null}
-                        </div>
-                    </div>
-                );
-            })}
+                            }
+                            avatar={<Avatar size={34} icon={<RobotOutlined />} className={'chat-window-assistantAvatar'} />}
+                        />
+                    );
+                })}
+            </div>
+
+            {isLoading && (
+                <div className={cx('chat-window-loading', styles.toString())}>
+                    <Spin size="small" />
+                    <Text type="secondary" className={'chat-window-loadingText'}>
+                        正在处理中...
+                    </Text>
+                </div>
+            )}
+            {error && <Alert type="error" showIcon title="请求失败" description={error.message} className={'chat-window-errorAlert'} />}
         </div>
     );
 });

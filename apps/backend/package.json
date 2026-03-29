@@ -18,6 +18,7 @@
         "@fastify/cors": "^11.2.0",
         "@fastify/env": "^6.0.0",
         "ai": "^6.0.141",
+        "dotenv": "^17.3.1",
         "fastify": "^5.8.4",
         "pino-roll": "^4.0.0",
         "zod": "^4.3.6"

@@ -101,20 +101,26 @@ import { ChatWindow } from './components/ChatWindow';
 Every component has `styles.ts` alongside `index.tsx`:
 
 ```typescript
-import { createStyles } from 'antd-style';
+import { createStyles, keyframes } from 'antd-style';
 
-const useStyles = createStyles(({ css }) => {
+const fadeIn = keyframes`
+    from { opacity: 0; }
+    to { opacity: 1; }
+`;
+
+const useStyles = createStyles(({ css, token }) => {
     return css({
         '&.component-name': {
             display: 'flex',
-            '.component-name-child': { fontSize: 14 }
+            animation: `${fadeIn} 200ms ease`,
+            '.component-name-child': { fontSize: 14, color: token.colorText }
         }
     });
 });
 export default useStyles;
 ```
 
-Usage: `className={cx('component-name', styles.toString())}` on root, plain strings on children.
+Usage: `className={cx('component-name', styles.toString())}` on root, plain strings on children. Use `keyframes` from `antd-style`, not CSS `@keyframes`.
 
 ### React
 
@@ -122,6 +128,7 @@ Usage: `className={cx('component-name', styles.toString())}` on root, plain stri
 - Props via explicit `interface`
 - Custom hooks: prefix `use`, return objects (not arrays)
 - Memoize with `memo()` when appropriate
+- Wrap callbacks in `useCallback` when passed as props
 
 ### Error Handling
 
@@ -136,6 +143,8 @@ Usage: `className={cx('component-name', styles.toString())}` on root, plain stri
 - **Do NOT** modify AI SDK versions
 
 ## Environment
+
+**Requirements**: Node.js >= 22, pnpm >= 10.32.1
 
 Create `.env` in `apps/backend/`:
 
