@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Noto+Sans:wght@300;400;500;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --color-primary: #0891b2;
+    --color-primary-light: #06b6d4;
+    --color-primary-dark: #0e7490;
+    --color-secondary: #22d3ee;
+    --color-cta: #22c55e;
+    --color-cta-dark: #16a34a;
+    --color-bg: #f0fdfa;
+    --color-bg-card: #ffffff;
+    --color-text: #134e4a;
+    --color-text-secondary: #5f9ea0;
+    --color-text-muted: #94a3b8;
+    --color-border: #e2e8f0;
+    --color-user-bubble: #0891b2;
+    --color-assistant-bubble: #f0fdfa;
+    --color-shadow: rgba(8, 145, 178, 0.08);
+    --font-heading: 'Figtree', 'Noto Sans', system-ui, sans-serif;
+    --font-body: 'Noto Sans', 'Figtree', system-ui, sans-serif;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+}
+
+body {
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.6;
+}
+
+#root {
+    min-height: 100vh;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Focus ring for accessibility */
+*:focus-visible {
+    outline: 3px solid var(--color-secondary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Ant Design input placeholder override */
+.ant-input::placeholder {
+    color: #94a3b8;
+}

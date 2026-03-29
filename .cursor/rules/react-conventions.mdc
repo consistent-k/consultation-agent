@@ -1,0 +1,44 @@
+---
+description: React component and hook conventions
+globs: ["**/*.tsx", "**/hooks/*.ts"]
+alwaysApply: true
+---
+
+# React Conventions
+
+## Components
+- Functional components with hooks only
+- Props via explicit `interface` (not inline types)
+- Use `memo()` for components that don't need frequent re-renders
+- Export as named export: `export function ChatInput() { ... }`
+
+```typescript
+interface ChatInputProps {
+    onSend: (message: string) => void;
+    isLoading?: boolean;
+}
+
+export const ChatInput = memo(function ChatInput({ onSend, isLoading }: ChatInputProps) {
+    // ...
+});
+```
+
+## Hooks
+- Prefix with `use`, return objects (not arrays)
+- Wrap callbacks in `useCallback` when passed as props
+
+```typescript
+export function useDiagnosisChat() {
+    // ...
+    return { messages, status, error, sendMessage };
+}
+```
+
+## File Structure
+Each component gets its own directory:
+```
+components/
+  ChatInput/
+    index.tsx     # Component
+    styles.ts     # antd-style createStyles
+```

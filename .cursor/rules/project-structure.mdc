@@ -1,0 +1,28 @@
+---
+description: Project structure and monorepo layout
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Project Structure
+
+Consultation Agent is a pnpm workspaces monorepo:
+- `apps/frontend/` — React 19 + Vite + Ant Design 6
+- `apps/backend/` — Node.js 22 + Fastify 5
+- `packages/shared/` — Reserved for shared types (currently unused)
+
+Frontend uses port 8080, backend uses port 3001. Vite proxies `/api` → backend.
+
+## Key Commands
+```
+pnpm dev          # Run both apps
+pnpm build        # Build all
+pnpm lint:fix     # Fix lint issues
+pnpm typecheck    # Type-check all
+pnpm --filter @consultation-agent/frontend typecheck  # Single app
+```
+
+## Rules
+- Never import from `@consultation-agent/shared` yet
+- Backend ESM imports require `.js` extension
+- No test framework configured — ask before adding tests

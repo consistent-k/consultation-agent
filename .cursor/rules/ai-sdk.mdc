@@ -1,0 +1,46 @@
+---
+description: AI SDK v6 usage patterns and tool definitions
+globs: ["**/ai/**", "**/hooks/useDiagnosisChat.ts"]
+alwaysApply: false
+---
+
+# AI SDK Patterns (v6)
+
+## Tool Definitions (Backend)
+Defined in `apps/backend/src/ai/tools.ts` using `tool()` from `ai` with `zod` schemas.
+No `execute` function — tools are confirmed on the frontend.
+
+```typescript
+import { tool } from 'ai';
+import { z } from 'zod';
+
+export const myTools = {
+    toolName: tool({
+        description: 'What this tool does',
+        inputSchema: z.object({
+            field: z.string().describe('Description')
+        })
+    })
+};
+```
+
+## Streaming (Backend)
+- Use `streamText` with `convertToModelMessages`
+- Provider: `@ai-sdk/openai-compatible` with env vars
+
+## Frontend Integration
+- `useChat` from `@ai-sdk/react` with `DefaultChatTransport`
+- `addToolOutput` for tool call confirmation
+- `lastAssistantMessageIsCompleteWithToolCalls` for auto-send
+
+```typescript
+const { messages, status, sendMessage, addToolOutput } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
+    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+});
+```
+
+## Rules
+- **Do NOT** modify AI SDK versions in package.json
+- Tool schemas use `zod` v4 syntax
+- Tools have no `execute` — frontend handles confirmation

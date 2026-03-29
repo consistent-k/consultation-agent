@@ -1,0 +1,42 @@
+{
+    "name": "@consultation-agent/frontend",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "start": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@ai-sdk/react": "^3.0.143",
+        "@ant-design/icons": "^6.1.1",
+        "@ant-design/x": "^2.4.0",
+        "@ant-design/x-markdown": "^2.4.0",
+        "@consultation-agent/shared": "workspace:*",
+        "ai": "^6.0.141",
+        "antd": "^6.3.4",
+        "antd-style": "^4.1.0",
+        "react": "^19.2.4",
+        "react-dom": "^19.2.4",
+        "zustand": "^5.0.12"
+    },
+    "devDependencies": {
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^6.0.1",
+        "eslint": "^10.1.0",
+        "eslint-plugin-import-x": "^4.16.2",
+        "eslint-plugin-prettier": "^5.5.5",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^7.0.1",
+        "eslint-plugin-unused-imports": "^4.4.1",
+        "typescript": "^6.0.2",
+        "typescript-eslint": "^8.57.2",
+        "vite": "^8.0.3"
+    }
+}

@@ -1,0 +1,51 @@
+# Frontend
+frontend:
+    - changed-files:
+          - any-glob-to-any-file: 'apps/frontend/**'
+
+# Backend
+backend:
+    - changed-files:
+          - any-glob-to-any-file: 'apps/backend/**'
+
+# Shared packages
+shared:
+    - changed-files:
+          - any-glob-to-any-file: 'packages/**'
+
+# Dependencies
+dependencies:
+    - changed-files:
+          - any-glob-to-any-file:
+                - 'package.json'
+                - 'pnpm-lock.yaml'
+                - '**/package.json'
+
+# CI/CD
+ci:
+    - changed-files:
+          - any-glob-to-any-file: '.github/**'
+
+# Documentation
+docs:
+    - changed-files:
+          - any-glob-to-any-file:
+                - '*.md'
+                - 'docs/**'
+
+# Styles
+styles:
+    - changed-files:
+          - any-glob-to-any-file:
+                - '**/*.css'
+                - '**/styles.ts'
+
+# Config
+config:
+    - changed-files:
+          - any-glob-to-any-file:
+                - 'tsconfig*.json'
+                - 'eslint.config.*'
+                - '.prettierrc'
+                - '.lintstagedrc*'
+                - 'commitlint.config.*'

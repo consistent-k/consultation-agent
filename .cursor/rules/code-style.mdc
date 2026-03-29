@@ -1,0 +1,40 @@
+---
+description: Code style, formatting, and naming conventions
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: true
+---
+
+# Code Style
+
+## Formatting (Prettier)
+- Single quotes, no trailing commas, 200 char width, 4-space indent, LF
+
+## TypeScript
+- Strict mode, explicit return types for exported functions
+- `type` for unions/primitives, `interface` for object shapes
+- Avoid `any` — use `unknown` + narrowing
+
+## Imports
+```typescript
+// External libs first, then internal, alphabetized
+import { Button } from 'antd';
+import type { UIMessage } from 'ai';
+import { useState } from 'react';
+
+import { ChatWindow } from './components/ChatWindow';
+```
+- Use `import type` for type-only imports
+- No blank lines between import groups
+
+## Naming
+| Element         | Style      | Example                      |
+|-----------------|------------|------------------------------|
+| Components      | PascalCase | `ChatInput`, `ChatWindow`    |
+| Hooks           | camelCase  | `useDiagnosisChat` (prefix `use`) |
+| Functions/vars  | camelCase  | `sendMessage`, `handleClick` |
+| Constants       | UPPER_SNAKE | `DIAGNOSIS_SYSTEM_PROMPT`   |
+| Types           | PascalCase | `ChatInputProps`             |
+
+## Error Handling
+- Backend: try-catch + `fastify.log.error()` + proper HTTP codes
+- Frontend: `error` state → antd `Alert`

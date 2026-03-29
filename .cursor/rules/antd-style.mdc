@@ -1,0 +1,46 @@
+---
+description: antd-style CSS-in-JS styling patterns
+globs: ["**/styles.ts", "**/*.tsx"]
+alwaysApply: true
+---
+
+# antd-style Patterns
+
+## styles.ts Pattern
+Every component has a `styles.ts` using `createStyles`:
+
+```typescript
+import { createStyles } from 'antd-style';
+
+const useStyles = createStyles(({ css }) => {
+    return css({
+        '&.component-name': {
+            display: 'flex',
+            '.component-name-childElement': {
+                fontSize: 14
+            }
+        }
+    });
+});
+
+export default useStyles;
+```
+
+## Usage in Components
+```typescript
+const { styles, cx } = useStyles();
+
+// Root element — injects generated CSS
+<div className={cx('component-name', styles.toString())}>
+    {/* Children — plain string matching CSS rule */}
+    <span className={'component-name-childElement'}>Text</span>
+</div>
+```
+
+## Rules
+- Root: `className={cx('kebab-case-name', styles.toString())}`
+- Children: `className={'component-name-child'}` (plain string)
+- Conditional: `cx('class-a', condition && 'class-b')`
+- Theme tokens: use `token` from `createStyles(({ css, token }) => ...)`
+- Animations: use `keyframes` from `antd-style`, not CSS `@keyframes`
+- `index.css` — only global styles (fonts, reset, scrollbar)
