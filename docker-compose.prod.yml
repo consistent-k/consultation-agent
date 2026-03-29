@@ -4,9 +4,9 @@ services:
         ports:
             - '127.0.0.1:8080:80'
         depends_on:
-            - consultation-backend
+            - backend
 
-    consultation-backend:
+    backend:
         image: consistentlee/consultation-agent-backend:latest
         ports:
             - '127.0.0.1:3001:3001'
