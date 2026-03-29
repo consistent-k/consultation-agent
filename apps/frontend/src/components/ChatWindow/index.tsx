@@ -45,12 +45,6 @@ interface Step {
     text: string;
 }
 
-interface StepContent {
-    reasoning?: string;
-    toolCalls: ToolPart[];
-    text?: string;
-}
-
 interface ChatWindowProps {
     messages: UIMessage[];
     status?: 'submitted' | 'streaming' | 'ready' | 'error';
@@ -67,7 +61,7 @@ function groupPartsBySteps(parts: UIMessage['parts']): Step[] {
             if (currentStep.id || currentStep.reasoning || currentStep.toolCalls.length || currentStep.text) {
                 steps.push(currentStep);
             }
-            currentStep = { id: crypto.randomUUID(), reasoning: '', toolCalls: [], text: '' };
+            currentStep = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`, reasoning: '', toolCalls: [], text: '' };
         } else if (part.type === 'reasoning') {
             const reasoningPart = part as { type: 'reasoning'; text: string };
             currentStep.reasoning += reasoningPart.text;
@@ -194,7 +188,7 @@ const WelcomeScreen = memo(function WelcomeScreen() {
 export const ChatWindow = memo(function ChatWindow({ messages, status, error, onConfirmToolCall }: ChatWindowProps) {
     const { styles, cx } = useStyles();
     const listRef = useRef<HTMLDivElement>(null);
-    const { scrollDomToBottom } = useScrollToBottom(listRef);
+    useScrollToBottom(listRef);
 
     const isLoading = useMemo(() => status === 'submitted' || status === 'streaming', [status]);
 

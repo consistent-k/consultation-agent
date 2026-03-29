@@ -15,7 +15,7 @@ const gentlePulse = keyframes`
     }
 `;
 
-const useStyles = createStyles(({ css, token }) => {
+const useStyles = createStyles(({ css }) => {
     return css({
         '&.chat-window': {
             flex: 1,

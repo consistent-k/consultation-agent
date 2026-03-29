@@ -1,11 +1,10 @@
 import { ClearOutlined, HeartFilled } from '@ant-design/icons';
-import { Layout, Typography, Button, Avatar, Flex } from 'antd';
+import { Typography, Button, Avatar, Flex } from 'antd';
 import { ChatInput } from '../../components/ChatInput';
 import { ChatWindow } from '../../components/ChatWindow';
 import { useDiagnosisChat } from '../../hooks/useDiagnosisChat';
 import useStyles from './styles';
 
-const { Header, Content } = Layout;
 const { Text } = Typography;
 
 const HomePage = () => {
