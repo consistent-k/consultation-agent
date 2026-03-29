@@ -2,6 +2,32 @@
 
 AI 智能预问诊系统，通过多轮对话收集患者信息，利用 LLM 工具调用实现结构化数据采集。
 
+## 📸 界面展示
+
+#### 询问年龄
+
+![询问年龄](/docs/images/step1.png)
+
+#### 询问性别
+
+![询问性别](/docs/images/step2.png)
+
+#### 收集症状
+
+![收集症状](/docs/images/step3.png)
+
+#### 收集既往史、过敏史
+
+![收集既往史、过敏史](/docs/images/step4.png)
+
+#### 生成总结报告
+
+![生成总结报告](/docs/images/step5.png)
+
+#### 就诊建议
+
+![给出就诊建议1](/docs/images/step6-1.png) ![给出就诊建议2](/docs/images/step6-2.png)
+
 ## 技术栈
 
 ### 前端
