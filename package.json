@@ -25,6 +25,7 @@
         "@commitlint/config-conventional": "^20.5.0",
         "commitizen": "^4.3.1",
         "cz-conventional-changelog": "^3.3.0",
+        "eslint-plugin-compat": "^7.0.1",
         "husky": "^9.1.7",
         "lint-staged": "^16.4.0",
         "prettier": "^3.8.1"
@@ -38,5 +39,10 @@
             "path": "./node_modules/cz-conventional-changelog"
         }
     },
-    "packageManager": "pnpm@10.33.0"
+    "packageManager": "pnpm@10.33.0",
+    "browserslist": [
+        "defaults",
+        "not dead",
+        "not op_mini all"
+    ]
 }
