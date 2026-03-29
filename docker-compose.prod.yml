@@ -1,17 +1,13 @@
 services:
     frontend:
-        build:
-            context: .
-            dockerfile: apps/frontend/Dockerfile
+        image: consistentlee/consultation-agent-frontend:latest
         ports:
             - '127.0.0.1:8080:80'
         depends_on:
             - consultation-backend
 
     consultation-backend:
-        build:
-            context: .
-            dockerfile: apps/backend/Dockerfile
+        image: consistentlee/consultation-agent-backend:latest
         ports:
             - '127.0.0.1:3001:3001'
         environment:
