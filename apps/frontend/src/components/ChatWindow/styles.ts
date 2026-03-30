@@ -30,7 +30,8 @@ const useStyles = createStyles(({ css }) => {
                 minHeight: 0,
                 display: 'flex',
                 flexDirection: 'column',
-                padding: '16px'
+                padding: '16px',
+                gap: 16
             },
 
             '.chat-window-loading': {

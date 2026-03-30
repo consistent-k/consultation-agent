@@ -1,41 +1,21 @@
-import { RefObject, useCallback, useEffect, useState } from 'react';
+import { type RefObject, useEffect, useState } from 'react';
 
-const SCROLL_THRESHOLD = 10;
-
-const useScrollToBottom = (scrollRef: RefObject<HTMLDivElement | null>, detach: boolean = false) => {
+const useScrollToBottom = (scrollRef: RefObject<HTMLDivElement | null>) => {
     const [autoScroll, setAutoScroll] = useState(true);
 
-    const isAtBottom = useCallback(() => {
-        const dom = scrollRef.current;
-        if (!dom) return true;
-        return dom.scrollHeight - dom.scrollTop - dom.clientHeight < SCROLL_THRESHOLD;
-    }, [scrollRef]);
-
-    function scrollDomToBottom() {
+    const scrollDomToBottom = () => {
         const dom = scrollRef.current;
         if (dom) {
             requestAnimationFrame(() => {
+                setAutoScroll(true);
                 dom.scrollTo({ top: dom.scrollHeight, behavior: 'smooth' });
             });
         }
-    }
-
-    // listen for manual scroll
-    useEffect(() => {
-        const dom = scrollRef.current;
-        if (!dom) return;
-
-        const handleScroll = () => {
-            setAutoScroll(isAtBottom());
-        };
-
-        dom.addEventListener('scroll', handleScroll, { passive: true });
-        return () => dom.removeEventListener('scroll', handleScroll);
-    }, [scrollRef, isAtBottom]);
+    };
 
     // auto scroll on new content
     useEffect(() => {
-        if (autoScroll && !detach) {
+        if (autoScroll) {
             scrollDomToBottom();
         }
     });

@@ -188,13 +188,19 @@ const WelcomeScreen = memo(function WelcomeScreen() {
 export const ChatWindow = memo(function ChatWindow({ messages, status, error, onConfirmToolCall }: ChatWindowProps) {
     const { styles, cx } = useStyles();
     const listRef = useRef<HTMLDivElement>(null);
-    useScrollToBottom(listRef);
+    const { setAutoScroll } = useScrollToBottom(listRef);
+
+    const handleScroll = (e: HTMLElement) => {
+        const bottomHeight = e.scrollTop + e.clientHeight;
+        const isHitBottom = bottomHeight >= e.scrollHeight - 10;
+        setAutoScroll(isHitBottom);
+    };
 
     const isLoading = useMemo(() => status === 'submitted' || status === 'streaming', [status]);
 
     return (
         <div className={cx('chat-window', styles.toString())}>
-            <div ref={listRef} className={cx('chat-window-list', styles.toString())}>
+            <div ref={listRef} className={cx('chat-window-list', styles.toString())} onScroll={(e) => handleScroll(e.currentTarget)}>
                 {messages.length === 0 && <WelcomeScreen />}
                 {messages.map((msg, msgIndex) => {
                     const isLastMessage = msgIndex === messages.length - 1;
